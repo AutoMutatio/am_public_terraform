@@ -129,9 +129,14 @@ terraform output containers
 ```
 
 6. Use the [rclone sync](https://rclone.org/commands/rclone_sync/) [Azure Storage Backend](https://rclone.org/azureblob/)
-   command to synchronize across files and folders, replace [variable] with the appropriate values.
+   command to synchronize across files and folders.
    This command will delete any files no longer on the source. The copy command can be used instead to not delete files.
-   See the documentation for more flags such as exclusions.
+   See the [rclone documentation](https://rclone.org/commands/rclone_sync/) for more flags such as exclusions.
+
+   1. If not already installed [Download and Install rclone](https://rclone.org/downloads/). And add it to your path.
+   2. Open a terminal (e.g. PowerShell, Command Prompt, bash) on the computer with access to the files to upload.
+   3. Login using step 4 above must be completed first.
+   4. Use the following command template to upload the files and folders. Replace [variable] with the appropriate values.
 
 ```
 rclone sync "[localPath]" -M ":azureblob,env_auth,account=[storageAccountName]:[blobContainerName]"
