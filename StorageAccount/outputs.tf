@@ -7,22 +7,28 @@ output "blobUrl" {
 }
 
 output "blobConnectionString" {
-  value = resource.azurerm_storage_account.storageAccount.primary_blob_connection_string
+  value     = resource.azurerm_storage_account.storageAccount.primary_blob_connection_string
   sensitive = true
 }
 
 output "containers" {
   value = {
-    for container in resource.azurerm_storage_container.container: container.name=> "${resource.azurerm_storage_account.storageAccount.primary_blob_endpoint}${container.name}"
+    for container in resource.azurerm_storage_container.container : container.name => "${resource.azurerm_storage_account.storageAccount.primary_blob_endpoint}${container.name}"
   }
 }
 
+output "tenantId" {
+  value     = var.azureTenantId
+  sensitive = false
+}
+
 output "clientId" {
-  value = resource.azuread_service_principal.syncPrincipal.client_id
+  value     = resource.azuread_service_principal.syncPrincipal.client_id
   sensitive = true
 }
 
 output "clientSecret" {
-  value = resource.azuread_service_principal_password.syncPrincipal.value
+  value     = resource.azuread_service_principal_password.syncPrincipal.value
   sensitive = true
 }
+
