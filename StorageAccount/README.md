@@ -1,10 +1,10 @@
-This [Terraform](https://developer.hashicorp.com/terraform/docs) module will create an
+This [tofu](https://developer.hashicorp.com/tofu/docs) module will create an
 Azure Storage Account and a service principal to use for syncing files from file
 systems to the AutoMutatio application.
 
-Terraform is an Infrastructure as Code tool that automates updating resources using
+tofu is an Infrastructure as Code tool that automates updating resources using
 configuration files that can be managed in a source code control system (e.g. GitHub).
-Terraform maintains a state file of the previous resources created. This is then
+tofu maintains a state file of the previous resources created. This is then
 used to detect changes and only require incremental updates ro resources.
 
 To use this module you will need an Azure Active Directory account and an Azure
@@ -13,26 +13,9 @@ subscription and to be able to grant roles to those resources.
 
 # Required Tools
 
-The [Azure Cloud Shell](http://shell.azure.com/) [Docs](https://learn.microsoft.com/en-us/azure/cloud-shell/overview)
-provides all the required tools and automatically logs you into your azure account in the shell.
+Install the required tools.
 
-You will need to install rclone into Azure Cloud Shell (update to latest version).
-
-```
-mkdir ~/bin
-cd ~/bin
-$RCLONE_VERSION="1.63.1"
-curl -O "https://downloads.rclone.org/v${RCLONE_VERSION}/rclone-v${RCLONE_VERSION}-linux-amd64.zip"
-unzip rclone*.zip
-rm rclone*.zip
-mv "rclone-v${RCLONE_VERSION}-linux-amd64/rclone" .
-rm -r "rclone-v${RCLONE_VERSION}-linux-amd64"
-```
-
-Alterantively install the following tools on your machine or in [Terraform Cloud](https://www.terraform.io/).
-
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-- [Terraform CLI](https://developer.hashicorp.com/terraform/downloads)
+- [tofu CLI](https://developer.hashicorp.com/tofu/downloads)
 - [rclone](https://rclone.org/downloads/)
 - [Visual Studio Code](https://code.visualstudio.com/download) - Optional development environment
 
@@ -40,8 +23,8 @@ Alterantively install the following tools on your machine or in [Terraform Cloud
 
 NOTE: We recommend using groups rather than users to assign roles to.
 
-1. Copy the template_terraform.tfvars.json to terraform.tfvars.json. This is a [Terraform Variables JSON file](https://developer.hashicorp.com/terraform/language/values/variables).
-2. Edit the terraform.tfvars.json using the parameters
+1. Copy the template_tofu.tfvars.json to tofu.tfvars.json. This is a [tofu Variables JSON file](https://developer.hashicorp.com/tofu/language/values/variables).
+2. Edit the tofu.tfvars.json using the parameters
 
 | Name                 | Type         | Description                                                                                                                                                                                      |
 | -------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -68,26 +51,26 @@ Run the following to create the storage account or update it if the configuratio
 az login
 ```
 
-3. Run Terraform [Init](https://developer.hashicorp.com/terraform/cli/commands/init) to
-   initialize the Terraform environment. This is only required the first time or if the
+3. Run tofu [Init](https://developer.hashicorp.com/tofu/cli/commands/init) to
+   initialize the tofu environment. This is only required the first time or if the
    providers or backend changes.
 
 ```bash
-terraform init
+tofu init
 ```
 
-4. Run Terraform [Plan](https://developer.hashicorp.com/terraform/cli/commands/plan) to verify
+4. Run tofu [Plan](https://developer.hashicorp.com/tofu/cli/commands/plan) to verify
    your configuration see what resources would be create, modified, or deleted.
 
 ```bash
-terraform plan
+tofu plan
 ```
 
-5. Run Terraform [Apply](https://developer.hashicorp.com/terraform/cli/commands/apply) to apply.
+5. Run tofu [Apply](https://developer.hashicorp.com/tofu/cli/commands/apply) to apply.
    The proposed changes (same as plan) will be shown. If correct then type yes to continue or no to cancel.
 
 ```bash
-terraform apply
+tofu apply
 ```
 
 6. You may choose to logout of azure
@@ -101,31 +84,43 @@ az logout
 The following shows the basic sequence of commands to copy files to azure storage.
 For automated processing you will want to create a script in PowerShell or sh/bash.
 
-1. Get the tenantId from the azureTenantId in the terraform.tfvars.json.
+1. Get the tenantId from the azureTenantId in the tofu.tfvars.json.
 2. Get the clientId by running the following command in this directory.
 
 ```
-terraform output -raw clientId
+tofu output -raw clientId
 ```
 
 3. Get the clientSecret by running the following command in this directory.
    Treat this as securely as you would a password.
 
 ```
-terraform output -raw clientSecret
+tofu output -raw clientSecret
 ```
 
-4. Login to azcopy using the service principal, replace [variable] with the appropriate values.
+4. Set environment vairables for rclone to connect using the service principal, replace [variable] with the appropriate values.
+
+If using powershell
 
 ```
-$env:AZCOPY_SPA_CLIENT_SECRET="[clientSecret]"; azcopy login --service-principal --application-id [clientId]  --tenant-id [tenantId]
+$Env:AZURE_TENANT_ID=$(tofu output -raw tenantId)
+$Env:AZURE_CLIENT_ID=$(tofu output -raw clientId)
+$Env:AZURE_CLIENT_SECRET=$(tofu output -raw clientSecret)
+```
+
+If using a unix shell
+
+```sh
+AZURE_TENANT_ID=`tofu output -raw tenantId`
+AZURE_CLIENT_ID=`tofu output -raw clientId`
+AZURE_CLIENT_SECRET=`tofu output -raw clientSecret`
 ```
 
 5. Use the following command to get the URL to the containers.
    (e.g. https://amupload45547dfdfhjd.blob.core.windows.net/files)
 
 ```
-terraform output containers
+tofu output containers
 ```
 
 6. Use the [rclone sync](https://rclone.org/commands/rclone_sync/) [Azure Storage Backend](https://rclone.org/azureblob/)
@@ -152,7 +147,7 @@ rclone sync "[localPath]" -M ":azureblob,env_auth,account=[storageAccountName]:[
 6. Run the following command in this directory to get the secure connection string from the storage account. Treat this as securely as you would a password.
 
 ```
-terraform output -raw blobConnectionString
+tofu output -raw blobConnectionString
 ```
 
 7. Copy and paste the output of that command into the Blob Connection String field
@@ -161,10 +156,10 @@ terraform output -raw blobConnectionString
 
 # Further Reading
 
-- Terraform Module [azuread_users](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/users) - Get Azure Active Directory Users by User Principal Names
-- Terraform Module [azuread_groups](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/groups) - Get Azure Active Directory Groups by Display Names
-- Terraform Module [azurerm_resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) - Create an [Azure Resource Group](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal)
-- Terraform Module [azurerm_storage_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) - Create an [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview)
-- Terraform Module [azurerm_storage_container](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) - Create a [Blob Container](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) to store files in an storage account
-- Terraform Module [azurerm_role_assignment](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) - Assign an [Azure Role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles) on the storage account to a user or group
-- Terraform Module [azuread_service_principal](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/service_principal) - Create a service principal for scripted sync of data
+- tofu Module [azuread_users](https://registry.tofu.io/providers/hashicorp/azuread/latest/docs/data-sources/users) - Get Azure Active Directory Users by User Principal Names
+- tofu Module [azuread_groups](https://registry.tofu.io/providers/hashicorp/azuread/latest/docs/data-sources/groups) - Get Azure Active Directory Groups by Display Names
+- tofu Module [azurerm_resource_group](https://registry.tofu.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) - Create an [Azure Resource Group](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal)
+- tofu Module [azurerm_storage_account](https://registry.tofu.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) - Create an [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview)
+- tofu Module [azurerm_storage_container](https://registry.tofu.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) - Create a [Blob Container](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) to store files in an storage account
+- tofu Module [azurerm_role_assignment](https://registry.tofu.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) - Assign an [Azure Role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles) on the storage account to a user or group
+- tofu Module [azuread_service_principal](https://registry.tofu.io/providers/hashicorp/azuread/latest/docs/resources/service_principal) - Create a service principal for scripted sync of data
