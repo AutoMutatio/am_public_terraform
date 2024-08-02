@@ -139,7 +139,7 @@ terraform output containers
    4. Use the following command template to upload the files and folders. Replace [variable] with the appropriate values.
 
 ```
-rclone sync "[localPath]" -M ":azureblob,env_auth,account=[storageAccountName]:[blobContainerName]"
+rclone sync "[localPath]" ":azureblob,env_auth,account=[storageAccountName]:[blobContainerName]" -M
 ```
 
 # Create AutoMutatio Feed
@@ -156,7 +156,7 @@ terraform output -raw blobConnectionString
 ```
 
 7. Copy and paste the output of that command into the Blob Connection String field
-8. Type the container name to sync into the Container/Folder Path Field.
+8. Type the container name to sync into the Container/Folder Path Field (e.g. container1/folderA).
 9. Click OK to create the feed and start syncing.
 
 # Further Reading

@@ -18,7 +18,7 @@ output "containers" {
 }
 
 output "clientId" {
-  value = resource.azuread_service_principal.syncPrincipal.application_id
+  value = resource.azuread_service_principal.syncPrincipal.client_id
   sensitive = true
 }
 

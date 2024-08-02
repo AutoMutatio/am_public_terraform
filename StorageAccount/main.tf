@@ -12,13 +12,13 @@ resource "azurerm_storage_account" "storageAccount" {
   is_hns_enabled                = true
   public_network_access_enabled = true
   tags = {
-    type        = "AutoMutatio Storage"
+    type = "AutoMutatio Storage"
   }
 }
 
 
 resource "azurerm_storage_container" "container" {
-  for_each             = toset(var.blobContainers)
+  for_each              = toset(var.blobContainers)
   name                  = each.value
   storage_account_name  = azurerm_storage_account.storageAccount.name
   container_access_type = "private"
@@ -30,7 +30,7 @@ resource "azuread_application" "storageAccount" {
 }
 
 resource "azuread_service_principal" "syncPrincipal" {
-  application_id               = azuread_application.storageAccount.application_id
+  client_id                    = azuread_application.storageAccount.client_id
   app_role_assignment_required = false
   owners                       = [data.azuread_client_config.current.object_id]
 }
@@ -46,7 +46,7 @@ resource "azurerm_role_assignment" "syncPrincipal" {
 }
 
 resource "azurerm_role_assignment" "storageBlobDataContributor" {
-  for_each             = toset(concat(
+  for_each = toset(concat(
     data.azuread_users.blobContibutors.object_ids,
     data.azuread_groups.blobContibutors.object_ids,
   ))
@@ -56,7 +56,7 @@ resource "azurerm_role_assignment" "storageBlobDataContributor" {
 }
 
 resource "azurerm_role_assignment" "storageBlobDataReader" {
-  for_each             = toset(concat(
+  for_each = toset(concat(
     data.azuread_users.blobReaders.object_ids,
     data.azuread_groups.blobReaders.object_ids
   ))
